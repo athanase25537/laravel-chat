@@ -49,7 +49,7 @@ class Friend extends Model
 
     public static function removeFriend($id1, $id2)
     {
-        DB::select('DELETE FROM friends WHERE id_friend1 = ' . $id1 .' AND id_friend2 = ' . $id2 . '');
+        DB::select('DELETE FROM friends WHERE (id_friend1 = ' . $id1 .' AND id_friend2 = ' . $id2 . ') OR (id_friend1 = ' . $id2 .' AND id_friend2 = ' . $id1 . ')');
     }
 
     public static function addFriend($id1, $id2)

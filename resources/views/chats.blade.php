@@ -36,7 +36,7 @@
                                                             $id = $msg->receiver_id;
                                                         @endphp
                                                     @else
-                                                        <div class="w-50 mb-2"> 
+                                                        <div class="w-50 mb-2">
                                                             <p style="width: fit-content; max-width: 100%" class="rounded p-2 bg-secondary">{{ $msg->content }}</p>
                                                         </div>
                                                     @endif
@@ -47,8 +47,6 @@
                                         <form id="chat-form" action="{{ route('posts', request()->id) }}" method="post">
                                             @csrf
                                             <input id="sms-content" type="text" name="sms" class="mb-3 form-control" required>
-                                            <input type="hidden" id="last_sms" name="last" value="{{ $last }}">
-                                            <input type="hidden" id="sender_id" name="sender_id" value="{{ Auth::user()->id }}">
                                             <button id="chat-btn" class="btn btn-primary">Envoyer</button>
                                         </form>
                                     </div>
@@ -61,8 +59,21 @@
         </div>
     </div>
 
-    <script>
+    @vite('resources/js/app.js')
+
+    <script type="module">
         $(document).ready(() => {
+
+            window.Echo
+            .private('private-channel.user.{{ Auth::id() }}')
+            .listen('PrivateEvent', (data) => {
+                $('#sms-container').append('<div class="w-50 mb-2"><p style="width: fit-content; max-width: 100%" class="rounded p-2 bg-secondary">'+data.message+'</p></div>')
+
+                $('#sms-container').parent().animate({
+                    scrollTop: $('#sms-container').height()
+                });
+            });
+
             $('#chat-form').submit((e) => {
                 e.preventDefault();
 
@@ -78,11 +89,10 @@
                     processData: false,
                     contentType: false,
                     success: function (data) {
-                        $('#last_sms').val(data.last);
                         $('#chat-btn').prop('disabled', false);
                         $('#sms-content').val('');
                         $('#sms-container').append('<div class="d-flex justify-content-end w-50 mb-2" style="transform: translateX(100%)"><p class="rounded p-2 bg-primary" style="width: fit-content; max-width: 100%;">'+data.sms+'</p></div>');
-                        let q = $('#sms-container').height();
+
                         $('#sms-container').parent().animate({
                             scrollTop: $('#sms-container').height()
                         });
@@ -94,30 +104,6 @@
                     }
                 });
             });
-
-            setInterval(() => {
-                let form = $('#chat-form')[0];
-                let data = new FormData(form);
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ route('new-chat', request()->id) }}",
-                    data: data,
-                    processData: false,
-                    contentType: false,
-                    success: function (data) {
-
-                        if(data.sms != null){
-                            $('#last_sms').val(data.last)
-
-                            $('#sms-container').append('<div class="w-50 mb-2"><p style="width: fit-content; max-width: 100%" class="rounded p-2 bg-secondary">'+data.sms+'</p></div>');
-                        }
-                    },
-                    error: function (e) {
-                        console.log(e.responseText);
-                        $('#chat-btn').prop('disabled', false);
-                    }
-                })
-            }, 1000);
         })
     </script>
 </x-app-layout>

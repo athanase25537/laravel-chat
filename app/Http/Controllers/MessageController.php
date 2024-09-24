@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PrivateEvent;
 use App\Models\Friend;
 use App\Models\Message;
 use App\Models\MessagePivot;
@@ -20,44 +21,10 @@ class MessageController extends Controller
         $sms = $sms->allMessages(Auth::user()->id, $request->id);
         $friend = new User();
         $friend = $friend->find($request->id);
-        
+
         $last = (count($sms)!==0) ? $sms[count($sms)-1]->id : 0;
 
         return view('chats', compact('sms', 'friend', 'last'));
-    }
-
-    public function getNewMessage(Request $request)
-    {
-        $lastSms = new MessagePivot();
-        $lastSms = $lastSms->getLastMessagePivot(Auth::user()->id, $request->id, $request->last);
-
-        if(!empty($lastSms)) {
-            $lastSms = $lastSms[0];
-        } else {
-            return response()->json([
-                'sms' => null,
-                'last' => 'tsy misy'
-            ]);
-        }
-
-
-        $sms_id = $lastSms->sms_id;
-
-        $sms = new MessagePivot();
-        $sms = $sms->getLastMessage($sms_id);
-        $sms = $sms[0]->content;
-
-        if(Auth::user()->id !== $lastSms->sender_id) {
-            return response()->json([
-            'sms' => $sms,
-            'last' => $sms_id
-            ]);
-        }
-
-        return response()->json([
-            'sms' => null,
-            'last' => 'tsy izy'
-        ]);
     }
 
     public function post(Request $request)
@@ -72,6 +39,8 @@ class MessageController extends Controller
         $smsPivot->sender_id = Auth::user()->id;
         $smsPivot->receiver_id = $request->id;
         $smsPivot->save();
+
+        event(new PrivateEvent($sms->content, $request->id));
 
         return response()->json([
             'sms' => $request->sms,
