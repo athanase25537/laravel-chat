@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\OnlineOffline;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\FriendEvent;
 use App\Models\Friend;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,17 +27,9 @@ class FriendController extends Controller
         $query = new Friend();
         $query::removeFriend(Auth::user()->id, $id);
 
-        // $notFriend = new User();
-        // $notFriend = $notFriend->find($id);
-        return redirect(route('friends'));
+        event(new FriendEvent($id));
 
-        // return response()->json([
-        //     'status' => 'finished',
-        //     'notFriend' => [
-        //         'name' => $notFriend->name,
-        //         'id' => $notFriend->id
-        //     ]
-        // ]);
+        return redirect(route('friends'));
     }
 
     public function addFriend($id)
@@ -44,10 +37,7 @@ class FriendController extends Controller
         $query = new Friend();
         $query::addFriend(Auth::user()->id, $id);
 
-        /*
-        $friend = new User();
-        $friend = $friend->find($id);
-        */
+        event(new FriendEvent($id));
 
         return redirect(route('friends'));
 

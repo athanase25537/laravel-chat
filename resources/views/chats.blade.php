@@ -14,11 +14,17 @@
                             <div class="col-md-8">
                                 <div class="card" style="height: 80vh;">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <p>{{ $friend->name }}</p>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-user fs-3 text-primary"></i>
+                                            <div class="d-flex flex-column mx-2" id="user-{{ $friend->id }}">
+                                                <p class="m-0 w-100">{{ $friend->name }}</p>
+                                                <p class="small text-danger capitalize">Offline</p>
+                                            </div>
+                                        </div>
                                         <a href="{{ route('friends') }}" class="float-right text-primary border border-primary px-2">Back</a>
                                     </div>
                                     <div class="card-body" style="height: 90%;">
-                                        <div class="sms mb-3 text-white" style="overflow: scroll; height: 75%">
+                                        <div class="sms mb-3 text-white" style="overflow: scroll; height: 85%">
                                             <div id="sms-container">
                                                 @php
                                                     $cpt = 0;
@@ -44,10 +50,10 @@
                                             </div>
                                         </div>
 
-                                        <form id="chat-form" action="{{ route('posts', request()->id) }}" method="post">
+                                        <form id="chat-form" class="form-group d-flex align-items-center" action="{{ route('posts', request()->id) }}" method="post">
                                             @csrf
-                                            <input id="sms-content" type="text" name="sms" class="mb-3 form-control" required>
-                                            <button id="chat-btn" class="btn btn-primary">Envoyer</button>
+                                            <input id="sms-content" type="text" name="sms" class="rounded form-control" required>
+                                            <button id="chat-btn" class="btn"><i class="fa-solid fa-paper-plane fs-4 text-primary"></i></button>
                                         </form>
                                     </div>
                                 </div>
@@ -64,6 +70,8 @@
     <script type="module">
         $(document).ready(() => {
 
+
+            // Get friend last message
             window.Echo
             .private('private-channel.user.{{ Auth::id() }}')
             .listen('PrivateEvent', (data) => {
@@ -73,6 +81,17 @@
                     scrollTop: $('#sms-container').height()
                 });
             });
+
+            // Get online or offline status
+            window.Echo
+                .channel('status-channel')
+                .listen('OnlineOffline', (data) => {
+                    let a = $('#user-'+data.userId+' p:last-child');
+                    if(data.status == 'online')
+                        a.text(data.status).removeClass('text-danger').addClass('text-success');
+                    else
+                        a.text(data.status).removeClass('text-success').addClass('text-danger');
+                })
 
             $('#chat-form').submit((e) => {
                 e.preventDefault();
