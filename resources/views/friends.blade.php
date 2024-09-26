@@ -76,16 +76,23 @@
         })
 
         // get online or offline status
-        window.Echo
-        .channel('status-channel')
-        .listen('OnlineOffline', (data) => {
-            let a = $('#user-'+data.userId+' p:last-child');
-            console.log(data);
-
-            if(data.status == 'online')
-                a.text(data.status).removeClass('text-danger').addClass('text-success');
-            else
-                a.text(data.status).removeClass('text-success').addClass('text-danger');
-        })
+        setInterval(() => {
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('all.status', request()->id) }}",
+                success: (data) => {
+                    data.forEach(d => {
+                        if(d.status == 'online')
+                            $('#user-'+d.id+' p:last-child').text(d.status).removeClass('text-danger').addClass('text-success');
+                        else
+                        $('#user-'+d.id+' p:last-child').text(d.status).removeClass('text-success').addClass('text-danger');
+                        console.log(d);
+                    });
+                },
+                error: (e) => {
+                    // console.log(e.responseText)
+                }
+            })
+        }, 500);
     </script>
 </x-app-layout>

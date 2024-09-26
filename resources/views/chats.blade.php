@@ -70,7 +70,6 @@
     <script type="module">
         $(document).ready(() => {
 
-
             // Get friend last message
             window.Echo
             .private('private-channel.user.{{ Auth::id() }}')
@@ -92,6 +91,22 @@
                     else
                         a.text(data.status).removeClass('text-success').addClass('text-danger');
                 })
+
+            setInterval(() => {
+                $.ajax({
+                    type: 'GET',
+                    url: "{{ route('friend.status', request()->id) }}",
+                    success: (data) => {
+                        if(data.status == 'online')
+                            $('#user-'+data.friendId+' p:last-child').text(data.status).removeClass('text-danger').addClass('text-success');
+                        else
+                            $('#user-'+data.friendId+' p:last-child').text(data.status).removeClass('text-success').addClass('text-danger');
+                    },
+                    error: (e) => {
+                        // console.log(e.responseText)
+                    }
+                })
+            }, 500);
 
             $('#chat-form').submit((e) => {
                 e.preventDefault();

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Events\OnlineOffline;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
@@ -16,8 +15,10 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create()
     {
+        if(Auth::id()) return redirect()->route('friends');
+
         return view('auth.login');
     }
 
@@ -30,9 +31,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        event(new OnlineOffline(Auth::id(), 'online'));
+        $user = new User();
+        $user->updateLastSeen(Auth::id());
+        $user->updateStatus(Auth::id(), 'online');
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('friends', absolute: false));
     }
 
     /**
@@ -40,15 +43,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-
-        event(new OnlineOffline(Auth::id(), 'offline'));
+        $user = new User();
+        $user->updateStatus(Auth::id(), 'offline');
 
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
-
 
         return redirect('/');
     }

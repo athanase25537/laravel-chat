@@ -7,6 +7,7 @@ use App\Models\Friend;
 use App\Models\Message;
 use App\Models\MessagePivot;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\Mime\Part\MessagePart;
@@ -49,5 +50,33 @@ class MessageController extends Controller
 
     }
 
+    public function getStatus($friendId)
+    {
+        $user = User::find($friendId);
+
+        return response()->json([
+            'status' => $user->status,
+            'friendId' => $friendId
+        ]);
+    }
+
+    public function getAllStatus()
+    {
+        $users = User::all();
+
+        $last_seens = [];
+        $j = 0;
+        foreach($users as $user) {
+            $last_seens[$j] = [
+                'id' => $user->id,
+                'status' => $user->status
+            ];
+
+            $user->updateLastSeen($user->id);
+            $j++;
+        }
+
+        return response()->json($last_seens);
+    }
 
 }

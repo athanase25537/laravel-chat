@@ -35,5 +35,11 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <script type="module">
+            $(document).ready(() => {
+                
+            })
+        </script>
     </body>
 </html>
